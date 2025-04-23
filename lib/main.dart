@@ -1,13 +1,17 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase for mobile (Android/iOS) only
-  await Firebase.initializeApp();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(const MyApp());
 }
@@ -39,13 +43,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-Timer(const Duration(seconds: 2), () {
-  print("Navigating to Login Screen...");
-  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (context) => LoginScreen()),
-  );
-});
+    Timer(const Duration(seconds: 2), () {
+      final user = FirebaseAuth.instance.currentUser;
 
+      if (user != null) {
+        // ✅ User is logged in — go to Home
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      } else {
+        // 🔐 Not logged in — go to Login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
+    });
   }
 
   @override

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "192365834851",
-    "project_id": "digilock-4df3f",
-    "storage_bucket": "digilock-4df3f.firebasestorage.app"
+    "project_number": "89502148227",
+    "project_id": "digilock-17538",
+    "storage_bucket": "digilock-17538.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:192365834851:android:8fcb6bd8c178f8724fbe56",
+        "mobilesdk_app_id": "1:89502148227:android:40eead59f7a18bc62b9db6",
         "android_client_info": {
           "package_name": "com.example.digilock_app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDCJKHbhGBmNtl_zrYmMPtpXH8F6dvzvUY"
+          "current_key": "AIzaSyDHe5RVvin6FA9xX6w7oubL1a5HF1fKGQU"
         }
       ],
       "services": {
