@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,35 +13,39 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
-  String errorMessage = '';
+  bool obscurePassword = true;
 
-  // Function to handle login
   Future<void> login() async {
     setState(() {
       isLoading = true;
-      errorMessage = '';
     });
 
-    try {
-      final email = emailController.text.trim();
-      final password = passwordController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
+    try {
       final user = await AuthService().signInWithEmail(
         email: email,
         password: password,
       );
 
-      if (user != null) {
+      if (user != null && context.mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Login failed: $e';
-      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: ${e.toString()}'),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -54,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/logo.png', height: 120),
+              Image.asset('assets/logo_outlined.png', height: 120),
               const SizedBox(height: 32),
               const Text(
                 'Welcome Back!',
@@ -70,13 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 16, color: Colors.white70),
               ),
               const SizedBox(height: 24),
-              if (errorMessage.isNotEmpty)
-                Text(
-                  errorMessage,
-                  style: const TextStyle(color: Colors.redAccent),
-                  textAlign: TextAlign.center,
-                ),
-              const SizedBox(height: 12),
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -85,8 +83,20 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: passwordController,
-                obscureText: true,
-                decoration: _inputDecoration('Password'),
+                obscureText: obscurePassword,
+                decoration: _inputDecoration('Password').copyWith(
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      color: const Color(0xFF0C1C30),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        obscurePassword = !obscurePassword;
+                      });
+                    },
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -106,6 +116,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           'Login',
                           style: TextStyle(fontSize: 16),
                         ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SignupScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  "Don't have an account? Sign up",
+                  style: TextStyle(color: Colors.white70),
                 ),
               ),
             ],
