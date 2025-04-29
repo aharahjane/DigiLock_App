@@ -39,57 +39,61 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        title: const Text(
-          'DigiLock',
-          style: TextStyle(
-            color: Color(0xFF0C1C30),
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Color(0xFF0C1C30)),
-            onPressed: () {
-              Navigator.of(context).push(_createCartRoute());
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person, color: Color(0xFF0C1C30)),
-            onPressed: () {
-              Navigator.of(context).push(_createUploadsRoute());
-            },
-          ),
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu, color: Color(0xFF0C1C30)),
-              onPressed: () {
-                Scaffold.of(context).openEndDrawer();
-              },
+    return WillPopScope(
+      onWillPop: () async => false, // Disable physical back button
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F8F8),
+        appBar: AppBar(
+          automaticallyImplyLeading: false, // Hides the back button in the app bar
+          backgroundColor: Colors.white,
+          elevation: 1,
+          title: const Text(
+            'DigiLock',
+            style: TextStyle(
+              color: Color(0xFF0C1C30),
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
             ),
           ),
-        ],
-      ),
-      endDrawer: const CustomDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _searchBar(),
-            const SizedBox(height: 16),
-            _categoryOptions(context),
-            const SizedBox(height: 16),
-            Expanded(child: _contentGrid()),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.shopping_cart, color: Color(0xFF0C1C30)),
+              onPressed: () {
+                Navigator.of(context).push(_createCartRoute());
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.person, color: Color(0xFF0C1C30)),
+              onPressed: () {
+                Navigator.of(context).push(_createUploadsRoute());
+              },
+            ),
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu, color: Color(0xFF0C1C30)),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              ),
+            ),
           ],
         ),
+        endDrawer: const CustomDrawer(),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _searchBar(),
+              const SizedBox(height: 16),
+              _categoryOptions(context),
+              const SizedBox(height: 16),
+              Expanded(child: _contentGrid()),
+            ],
+          ),
+        ),
+        bottomNavigationBar: _bottomNavigationBar(),
       ),
-      bottomNavigationBar: _bottomNavigationBar(),
     );
   }
 

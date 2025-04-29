@@ -38,7 +38,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       drawer: const CustomDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C1C30),
-        title: const Text('Purchases', style: TextStyle(color: Colors.white)),
+        title: const Text('DigiLock', style: TextStyle(color: Colors.white)),
         actions: [
           GestureDetector(
             onTap: () {

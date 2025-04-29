@@ -1,27 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
+
+  Future<String> _getFirstName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (docSnapshot.exists) {
+        return docSnapshot.data()?['firstName'] ?? 'User';
+      }
+    }
+    return 'User';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: const Color(0xFF0C1C30),
-      child: FutureBuilder<User?>(
-        future: FirebaseAuth.instance.authStateChanges().first,  // Get the current user
+      child: FutureBuilder<String>(
+        future: _getFirstName(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final user = snapshot.data;
-          String userName = user?.displayName ?? 'User';  // Default to "User" if no display name
+          String firstName = snapshot.data ?? 'User';
 
           return ListView(
             padding: EdgeInsets.zero,
             children: [
-              // Drawer Header with the app name "DigiLock"
               const DrawerHeader(
                 decoration: BoxDecoration(
                   color: Color(0xFF0C1C30),
@@ -37,19 +47,17 @@ class CustomDrawer extends StatelessWidget {
                   ),
                 ),
               ),
-              // Greeting text with dynamic name
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
-                  'Hi $userName!',
+                  'Hi $firstName!',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 24,  // Increased font size for better visibility
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              // Menu Items
               ListTile(
                 leading: const Icon(Icons.person, color: Colors.white),
                 title: const Text('Personal Info', style: TextStyle(color: Colors.white)),
