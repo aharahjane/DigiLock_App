@@ -62,8 +62,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feedback'),
+        title: const Text(
+          'Feedback',
+          style: TextStyle(color: Colors.white), // <-- white font for title
+        ),
         backgroundColor: const Color(0xFF0C1C30),
+        iconTheme: const IconThemeData(
+          color: Colors.white, // <-- white color for back icon
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
