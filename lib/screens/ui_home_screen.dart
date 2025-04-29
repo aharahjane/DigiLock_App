@@ -215,19 +215,6 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
         const SizedBox(width: 8),
         _chipButton(context, 'My Uploads', dark: true),
         const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(_createUploadsRoute());
-          },
-          child: const Text(
-            'Upload your work',
-            style: TextStyle(
-              color: Color(0xFF0C1C30),
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-        ),
       ],
     );
   }
