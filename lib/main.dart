@@ -4,14 +4,17 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
-import 'screens/home_screen.dart';
-import 'firebase_options.dart';
+import 'firebase_options.dart';  // Ensure this is imported
+import 'screens/purchase_screen.dart';
+import 'screens/my_uploads_screen.dart';
+import 'screens/ui_home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Make sure Firebase is initialized before running the app
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: DefaultFirebaseOptions.currentPlatform,  // Ensure that the DefaultFirebaseOptions file exists and is correctly configured
   );
 
   runApp(const MyApp());
@@ -28,11 +31,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0C1C30)),
       ),
-      home: const SplashScreen(),
+      initialRoute: '/', // Keeps the initial route as SplashScreen
       routes: {
+        '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const UiHomeScreen(),
+        '/purchases': (context) => const PurchaseScreen(),
+        '/uploads': (context) => const MyUploadsScreen(),
       },
     );
   }
