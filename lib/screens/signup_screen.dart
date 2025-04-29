@@ -1,200 +1,200 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  _SignupScreenState createState() => _SignupScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-  bool isLoading = false;
-  bool obscurePassword = true;
-  bool obscureConfirmPassword = true;
-  String errorMessage = '';
+  final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
 
-  Future<void> signup() async {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  void _toggleObscure(bool isConfirm) {
     setState(() {
-      isLoading = true;
-      errorMessage = '';
+      if (isConfirm) {
+        _obscureConfirmPassword = !_obscureConfirmPassword;
+      } else {
+        _obscurePassword = !_obscurePassword;
+      }
     });
+  }
 
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final confirmPassword = confirmPasswordController.text.trim();
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    if (!email.contains('@')) {
-      showSnack('Please enter a valid email.');
-      setState(() => isLoading = false);
-      return;
-    }
-
-    if (password.length < 6) {
-      showSnack('Password must be at least 6 characters.');
-      setState(() => isLoading = false);
-      return;
-    }
-
-    if (password != confirmPassword) {
-      showSnack('Passwords do not match.');
-      setState(() => isLoading = false);
-      return;
-    }
+    setState(() => _isLoading = true);
 
     try {
-      await AuthService().signUpWithEmail(email: email, password: password);
+      final userCredential = await _authService.signUpWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
-      if (context.mounted) {
-        showSnack('Signup successful! Please login.', color: Colors.green);
-        await Future.delayed(const Duration(seconds: 2));
-        Navigator.of(context).pushReplacementNamed('/login');
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Signup failed: ${_formatError(e)}';
+      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).update({
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'role': 'user',
+        'createdAt': Timestamp.now(),
       });
+
+      if (mounted) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? 'Signup failed')));
     } finally {
-      setState(() => isLoading = false);
+      setState(() => _isLoading = false);
     }
   }
 
-  void showSnack(String message, {Color color = Colors.redAccent}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  String _formatError(dynamic error) {
-    final msg = error.toString();
-    if (msg.contains('email-already-in-use')) {
-      return 'This email is already registered.';
-    } else if (msg.contains('invalid-email')) {
-      return 'The email address is invalid.';
-    } else if (msg.contains('weak-password')) {
-      return 'The password is too weak.';
-    }
-    return msg;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0C1C30),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/logo_outlined.png', height: 120),
-              const SizedBox(height: 32),
-              const Text(
-                'Create Account',
-                style: TextStyle(
-                  fontSize: 28,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Sign up to get started',
-                style: TextStyle(fontSize: 16, color: Colors.white70),
-              ),
-              const SizedBox(height: 24),
-              if (errorMessage.isNotEmpty)
-                Text(
-                  errorMessage,
-                  style: const TextStyle(color: Colors.redAccent),
-                  textAlign: TextAlign.center,
-                ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: _inputDecoration('Email'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                obscureText: obscurePassword,
-                decoration: _inputDecoration('Password').copyWith(
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscurePassword ? Icons.visibility_off : Icons.visibility,
-                      color: const Color(0xFF0C1C30),
-                    ),
-                    onPressed: () => setState(() => obscurePassword = !obscurePassword),
+  Widget _buildTextField({
+    required String hintText,
+    required IconData icon,
+    required TextEditingController controller,
+    bool obscureText = false,
+    bool showToggle = false,
+    VoidCallback? onToggle,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        validator: validator,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: const Color(0xFFE9EBEF),
+          prefixIcon: Icon(icon, color: Colors.black54),
+          suffixIcon: showToggle
+              ? IconButton(
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black54,
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: confirmPasswordController,
-                obscureText: obscureConfirmPassword,
-                decoration: _inputDecoration('Re-enter Password').copyWith(
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                      color: const Color(0xFF0C1C30),
-                    ),
-                    onPressed: () => setState(() => obscureConfirmPassword = !obscureConfirmPassword),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: signup,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: const Color(0xFF1A2E45),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Sign Up',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => Navigator.of(context).pushReplacementNamed('/login'),
-                child: const Text(
-                  'Already have an account? Login',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ),
-            ],
+                  onPressed: onToggle,
+                )
+              : null,
+          hintText: hintText,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
           ),
         ),
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      filled: true,
-      fillColor: Colors.white,
-      labelStyle: const TextStyle(color: Color(0xFF0C1C30)),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.white),
-        borderRadius: BorderRadius.circular(12),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFB),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Register Now',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+
+                _buildTextField(
+                  hintText: 'First Name',
+                  icon: Icons.person_outline,
+                  controller: _firstNameController,
+                  validator: (value) => value!.isEmpty ? 'Enter your first name' : null,
+                ),
+                _buildTextField(
+                  hintText: 'Last Name',
+                  icon: Icons.person_outline,
+                  controller: _lastNameController,
+                  validator: (value) => value!.isEmpty ? 'Enter your last name' : null,
+                ),
+                _buildTextField(
+                  hintText: 'Email Address',
+                  icon: Icons.email_outlined,
+                  controller: _emailController,
+                  validator: (value) => value!.isEmpty ? 'Enter your email' : null,
+                ),
+                _buildTextField(
+                  hintText: 'Password',
+                  icon: Icons.lock_outline,
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  showToggle: true,
+                  onToggle: () => _toggleObscure(false),
+                  validator: (value) => value!.length < 6 ? 'Password must be 6+ chars' : null,
+                ),
+                _buildTextField(
+                  hintText: 'Confirm Password',
+                  icon: Icons.lock_outline,
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  showToggle: true,
+                  onToggle: () => _toggleObscure(true),
+                  validator: (value) => value != _passwordController.text ? 'Passwords do not match' : null,
+                ),
+
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0C1C30),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    onPressed: _isLoading ? null : _submit,
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Sign In', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Already have an account?'),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                      },
+                      child: const Text('Sign In'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
