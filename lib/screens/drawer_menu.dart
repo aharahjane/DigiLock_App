@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'feedback_screen.dart'; // 👈 Added import
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -98,6 +99,17 @@ class CustomDrawer extends StatelessWidget {
                 title: const Text('Reports', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pushReplacementNamed(context, '/reports');
+                },
+              ),
+              // 👉 Feedback menu
+              ListTile(
+                leading: const Icon(Icons.feedback, color: Colors.white),
+                title: const Text('Feedback', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FeedbackScreen()),
+                  );
                 },
               ),
               const Divider(color: Colors.white54),
