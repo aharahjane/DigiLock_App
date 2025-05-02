@@ -4,19 +4,20 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
-import 'firebase_options.dart';  // Ensure this is imported
+import 'firebase_options.dart';
 import 'screens/purchase_screen.dart';
 import 'screens/my_uploads_screen.dart';
 import 'screens/ui_home_screen.dart';
+import 'screens/upload_choice_screen.dart';      // ✅ NEW
+import 'screens/upload_steps_screen.dart';       // ✅ NEW
+import 'screens/my_works_screen.dart';           // ✅ NEW
+import 'screens/upload_work_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Make sure Firebase is initialized before running the app
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,  // Ensure that the DefaultFirebaseOptions file exists and is correctly configured
+    options: DefaultFirebaseOptions.currentPlatform,
   );
-
   runApp(const MyApp());
 }
 
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0C1C30)),
       ),
-      initialRoute: '/', // Keeps the initial route as SplashScreen
+      initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
@@ -39,6 +40,11 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const UiHomeScreen(),
         '/purchases': (context) => const PurchaseScreen(),
         '/uploads': (context) => const MyUploadsScreen(),
+        '/upload_my_work': (context) => const UploadChoiceScreen(), // ✅ new screen from drawer
+        '/uploadSteps': (context) => const UploadStepsScreen(),     // ✅ step-by-step guide
+        '/myWorks': (context) => const MyWorksScreen(),            // ✅ "My works" page
+        '/uploadWork': (context) => const UploadWorkScreen(),
+
       },
     );
   }

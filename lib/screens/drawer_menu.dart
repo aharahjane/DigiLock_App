@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'feedback_screen.dart'; // 👈 Added import
+import 'feedback_screen.dart';
+import 'upload_choice_screen.dart'; // 👈 Import this if not yet imported
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -84,7 +85,12 @@ class CustomDrawer extends StatelessWidget {
                 leading: const Icon(Icons.upload_file, color: Colors.white),
                 title: const Text('Upload My Work', style: TextStyle(color: Colors.white)),
                 onTap: () {
-                  Navigator.pushReplacementNamed(context, '/upload_my_work');
+                  // ✅ FIXED: Use push instead of pushReplacementNamed
+                  Navigator.pop(context); // close drawer
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const UploadChoiceScreen()),
+                  );
                 },
               ),
               ListTile(
@@ -101,7 +107,6 @@ class CustomDrawer extends StatelessWidget {
                   Navigator.pushReplacementNamed(context, '/reports');
                 },
               ),
-              // 👉 Feedback menu
               ListTile(
                 leading: const Icon(Icons.feedback, color: Colors.white),
                 title: const Text('Feedback', style: TextStyle(color: Colors.white)),
