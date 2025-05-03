@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'import_screen.dart'; // ✅ added import
 
 class UploadWorkScreen extends StatefulWidget {
   const UploadWorkScreen({super.key});
@@ -32,21 +33,13 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
   Future<void> _pickCertificateFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: ['pdf'],
     );
 
     if (result != null) {
       setState(() {
         _certificateFile = result.files.first;
       });
-
-      // Navigate to a simple page showing uploaded file name
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CertificatePreviewScreen(file: _certificateFile!),
-        ),
-      );
     }
   }
 
@@ -92,8 +85,7 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                       ),
                       const SizedBox(height: 20),
                       _buildTextField("Author", _authorController),
-                      _buildTextField("Price in Peso", _priceController,
-                          isNumber: true),
+                      _buildTextField("Price in Peso", _priceController, isNumber: true),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -112,8 +104,7 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                                 ),
                                 if (_selectedDate != null)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: Colors.grey.shade400,
                                       borderRadius: BorderRadius.circular(10),
@@ -140,8 +131,7 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                                     color: Colors.grey.shade300,
                                     borderRadius: BorderRadius.circular(15),
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
                                   child: TextField(
                                     controller: _descriptionController,
                                     maxLines: null,
@@ -177,15 +167,8 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                         label: const Text("Upload"),
                       ),
                       const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.upload),
-                        label: const Text("Import"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey.shade400,
-                          foregroundColor: Colors.black,
-                        ),
-                      ),
+                      if (_certificateFile != null)
+                        Text("Uploaded: ${_certificateFile!.name}", style: const TextStyle(fontSize: 14)),
                     ],
                   ),
                 ),
@@ -203,9 +186,12 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                   ),
                 ),
                 onPressed: () {
-                  // TODO: Handle final upload logic
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ImportScreen()),
+                  );
                 },
-                child: const Text("Upload and get reviewed!"),
+                child: const Text("Next"),
               ),
             ),
           ],
@@ -214,8 +200,7 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      {bool isNumber = false}) {
+  Widget _buildTextField(String label, TextEditingController controller, {bool isNumber = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -239,28 +224,6 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
         ),
         const SizedBox(height: 10),
       ],
-    );
-  }
-}
-
-class CertificatePreviewScreen extends StatelessWidget {
-  final PlatformFile file;
-
-  const CertificatePreviewScreen({super.key, required this.file});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Uploaded File"),
-        backgroundColor: const Color(0xFF0C1C30),
-      ),
-      body: Center(
-        child: Text(
-          "Uploaded: ${file.name}",
-          style: const TextStyle(fontSize: 18),
-        ),
-      ),
     );
   }
 }
