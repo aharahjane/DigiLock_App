@@ -46,10 +46,15 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text,
       );
 
-      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).update({
+      // Create user profile in Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
         'firstName': _firstNameController.text.trim(),
         'lastName': _lastNameController.text.trim(),
+        'email': _emailController.text.trim(),
         'role': 'user',
+        'followers': 0,  // Default value
+        'following': 0,  // Default value
+        'photoUrl': "",  // Default empty photo URL
         'createdAt': Timestamp.now(),
       });
 

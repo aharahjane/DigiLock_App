@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'drawer_menu.dart';
 import 'purchase_screen.dart';
 import 'my_uploads_screen.dart';
+import 'user_profile_screen.dart'; // ✅ Added import
 
 class UiHomeScreen extends StatefulWidget {
   const UiHomeScreen({super.key});
@@ -40,11 +41,11 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => false, // Disable physical back button
+      onWillPop: () async => false,
       child: Scaffold(
         backgroundColor: const Color(0xFFF8F8F8),
         appBar: AppBar(
-          automaticallyImplyLeading: false, // Hides the back button in the app bar
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           elevation: 1,
           title: const Text(
@@ -65,7 +66,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
             IconButton(
               icon: const Icon(Icons.person, color: Color(0xFF0C1C30)),
               onPressed: () {
-                Navigator.of(context).push(_createUploadsRoute());
+                Navigator.of(context).push(_createProfileRoute()); // ✅ Profile route
               },
             ),
             Builder(
@@ -146,9 +147,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
 
   Widget _chipButton(BuildContext context, String label, {bool dark = false}) {
     return ElevatedButton(
-      onPressed: () {
-        // Handle navigation based on label
-      },
+      onPressed: () {},
       style: ElevatedButton.styleFrom(
         backgroundColor: dark ? const Color(0xFF0C1C30) : Colors.blue,
         foregroundColor: Colors.white,
@@ -169,6 +168,13 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
   Route _createUploadsRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => const MyUploadsScreen(),
+      transitionsBuilder: _fadeSlideTransition,
+    );
+  }
+
+  Route _createProfileRoute() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => const UserProfileScreen(),
       transitionsBuilder: _fadeSlideTransition,
     );
   }
