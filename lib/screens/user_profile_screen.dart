@@ -119,14 +119,8 @@ class UserProfileScreen extends StatelessWidget {
           final followers = userData['followers']?.toString() ?? '0';
           final following = userData['following']?.toString() ?? '0';
 
-          return FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
-            future: Future.wait([
-              _getPurchasedContent(),
-              _getMyUploads(),
-            ]).then((results) => {
-                  'purchasedContent': results[0]!,
-                  'myUploads': results[1]!,
-                }),
+          return FutureBuilder<Map<String, dynamic>>(
+            future: _fetchContentData(),
             builder: (context, contentSnapshot) {
               if (contentSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -136,8 +130,10 @@ class UserProfileScreen extends StatelessWidget {
                 return Center(child: Text('Error: ${contentSnapshot.error}'));
               }
 
-              final purchasedContent = contentSnapshot.data!['purchasedContent'];
-              final myUploads = contentSnapshot.data!['myUploads'];
+              final purchasedContent = contentSnapshot.data!['purchasedContent']
+                  as Map<String, List<Map<String, dynamic>>>;
+              final myUploads = contentSnapshot.data!['myUploads']
+                  as Map<String, List<Map<String, dynamic>>>;
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -158,6 +154,15 @@ class UserProfileScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<Map<String, dynamic>> _fetchContentData() async {
+    final purchased = await _getPurchasedContent();
+    final uploads = await _getMyUploads();
+    return {
+      'purchasedContent': purchased,
+      'myUploads': uploads,
+    };
   }
 
   Widget _profileHeader(String firstName, String lastName, String photoUrl, String followers, String following) {
@@ -191,7 +196,6 @@ class UserProfileScreen extends StatelessWidget {
   }
 
   static const TextStyle _statStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
-
   static const TextStyle _labelStyle = TextStyle(color: Colors.grey);
 
   static Widget _statColumn(String label, String count) {
@@ -216,7 +220,7 @@ class UserProfileScreen extends StatelessWidget {
   Widget _contentCategoryList(Map<String, List<Map<String, dynamic>>> content) {
     return Column(
       children: [
-        _categoryButton('All', content),
+        _categoryButton('All', content.values.expand((list) => list).toList()),
         _categoryButton('Ebooks', content['epubs'] ?? []),
         _categoryButton('Books', content['books'] ?? []),
         _categoryButton('Arts', content['arts'] ?? []),
@@ -260,7 +264,7 @@ class UserProfileScreen extends StatelessWidget {
                         children: [
                           const Icon(Icons.file_copy, color: Color(0xFF0C1C30)),
                           const SizedBox(width: 12),
-                          Expanded(child: Text(item['title'])),
+                          Expanded(child: Text(item['title'] ?? 'Untitled')),
                           const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                         ],
                       ),

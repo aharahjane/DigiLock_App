@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'import_screen.dart'; // ✅ added import
+import 'import_screen.dart';
 
 class UploadWorkScreen extends StatefulWidget {
   const UploadWorkScreen({super.key});
@@ -13,8 +13,12 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
   final TextEditingController _authorController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+
   DateTime? _selectedDate;
-  PlatformFile? _certificateFile;
+  String? _selectedContentType;
+  PlatformFile? _uploadedFile;
+
+  final List<String> _contentTypes = ['Photos', 'Videos', 'E-Books'];
 
   Future<void> _pickDate() async {
     DateTime? picked = await showDatePicker(
@@ -30,17 +34,20 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
     }
   }
 
-  Future<void> _pickCertificateFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
       setState(() {
-        _certificateFile = result.files.first;
+        _uploadedFile = result.files.first;
       });
     }
+  }
+
+  void _removeSelectedFile() {
+    setState(() {
+      _uploadedFile = null;
+    });
   }
 
   @override
@@ -85,7 +92,7 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                       ),
                       const SizedBox(height: 20),
                       _buildTextField("Author", _authorController),
-                      _buildTextField("Price in Peso", _priceController, isNumber: true),
+                      _buildTextField("Price", _priceController, isNumber: true),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -146,10 +153,51 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
+
+                      // Type of Digital Content Dropdown
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          "Certificate of Authentication",
+                          "Type of Digital Content",
+                          style: TextStyle(
+                            color: Color(0xFF0C1C30),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedContentType,
+                          hint: const Text("Select"),
+                          underline: const SizedBox(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedContentType = newValue;
+                            });
+                          },
+                          items: _contentTypes.map((String type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Import Digital Content Button
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Import Digital Content",
                           style: TextStyle(
                             color: Color(0xFF0C1C30),
                             fontWeight: FontWeight.bold,
@@ -162,13 +210,38 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                           backgroundColor: Colors.grey.shade400,
                           foregroundColor: Colors.black,
                         ),
-                        onPressed: _pickCertificateFile,
+                        onPressed: _pickFile,
                         icon: const Icon(Icons.upload),
-                        label: const Text("Upload"),
+                        label: const Text("Select"),
                       ),
-                      const SizedBox(height: 10),
-                      if (_certificateFile != null)
-                        Text("Uploaded: ${_certificateFile!.name}", style: const TextStyle(fontSize: 14)),
+
+                      if (_uploadedFile != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _uploadedFile!.name,
+                                    style: const TextStyle(fontSize: 14),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  onPressed: _removeSelectedFile,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -191,7 +264,7 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                     MaterialPageRoute(builder: (_) => const ImportScreen()),
                   );
                 },
-                child: const Text("Next"),
+                child: const Text("NEXT"),
               ),
             ),
           ],

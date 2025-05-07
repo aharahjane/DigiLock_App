@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 
 class ImportScreen extends StatefulWidget {
   const ImportScreen({super.key});
@@ -9,21 +8,7 @@ class ImportScreen extends StatefulWidget {
 }
 
 class _ImportScreenState extends State<ImportScreen> {
-  PlatformFile? _selectedFile;
-
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      withData: true, // Needed for image preview
-    );
-
-    if (result != null) {
-      setState(() {
-        _selectedFile = result.files.first;
-      });
-    }
-  }
+  bool isAgreed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -53,68 +38,91 @@ class _ImportScreenState extends State<ImportScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                "Import Certificate",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0C1C30),
+              Container(
+                height: 300,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE9EBF2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          '• "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. '
+                          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. '
+                          'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. '
+                          'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."\n\n'
+                          '• "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. '
+                          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi...',
+                          style: TextStyle(color: Color(0xFF0C1C30)),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _pickFile,
-                icon: const Icon(Icons.upload_file),
-                label: const Text("Choose File"),
+              Row(
+                children: [
+                  Checkbox(
+                    value: isAgreed,
+                    onChanged: (value) {
+                      setState(() {
+                        isAgreed = value ?? false;
+                      });
+                    },
+                    activeColor: Colors.green,
+                  ),
+                  const Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          WidgetSpan(
+                            child: Icon(Icons.check_box, size: 0), // Invisible placeholder
+                          ),
+                          TextSpan(
+                            text: " I Agree to the ",
+                            style: TextStyle(
+                              color: Color(0xFF0C1C30),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: "Terms and Condition",
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              color: Color(0xFF0C1C30),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: isAgreed ? () {
+                  // Your upload logic here
+                } : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0C1C30),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              if (_selectedFile != null)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Preview",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Color(0xFF0C1C30),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: _selectedFile!.extension == 'pdf'
-                          ? Text(
-                              "PDF File: ${_selectedFile!.name}",
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontSize: 14,
-                              ),
-                            )
-                          : _selectedFile!.bytes != null
-                              ? Image.memory(
-                                  _selectedFile!.bytes!,
-                                  height: 200,
-                                  fit: BoxFit.contain,
-                                )
-                              : const Text("Unable to preview image."),
-                    ),
-                  ],
+                child: const Text(
+                  "UPLOAD NOW!",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+              ),
             ],
           ),
         ),
