@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'drawer_menu.dart';
 import 'purchase_screen.dart';
 import 'my_uploads_screen.dart';
 import 'user_profile_screen.dart'; // ✅ Added import
+import 'upload_model.dart';
+
 
 class UiHomeScreen extends StatefulWidget {
   const UiHomeScreen({super.key});
@@ -13,6 +16,19 @@ class UiHomeScreen extends StatefulWidget {
 
 class _UiHomeScreenState extends State<UiHomeScreen> {
   int _selectedIndex = 0;
+  String _selectedCategory = 'All'; // Track the selected category filter
+
+  // Fetch content from Firestore
+  Stream<QuerySnapshot> _fetchContent() {
+    if (_selectedCategory == 'All') {
+      return FirebaseFirestore.instance.collection('uploads').snapshots(); // Get all uploads
+    } else {
+      return FirebaseFirestore.instance
+          .collection('uploads')
+          .where('category', isEqualTo: _selectedCategory) // Filter by type
+          .snapshots();
+    }
+  }
 
   void _onNavItemTapped(int index) {
     setState(() {
@@ -33,7 +49,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
         Navigator.pushReplacementNamed(context, '/arts');
         break;
       case 4:
-        Navigator.pushReplacementNamed(context, '/videos');
+        Navigator.pushReplacementNamed(context, '/video');
         break;
     }
   }
@@ -87,9 +103,11 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
             children: [
               _searchBar(),
               const SizedBox(height: 16),
-              _categoryOptions(context),
+              _categoryFilter(), // Add filter for categories
               const SizedBox(height: 16),
-              Expanded(child: _contentGrid()),
+              Expanded(
+                child: _contentGrid(), // Display dynamic content
+              ),
             ],
           ),
         ),
@@ -98,6 +116,99 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
     );
   }
 
+  // Filter options for content type (All, Image, Video, Literature)
+  Widget _categoryFilter() {
+    return Row(
+      children: [
+        _chipButton(context, 'All'),
+        const SizedBox(width: 8),
+        _chipButton(context, 'Image'),
+        const SizedBox(width: 8),
+        _chipButton(context, 'Video'),
+        const SizedBox(width: 8),
+        _chipButton(context, 'Literature'),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  // Create dynamic chip buttons for categories
+  Widget _chipButton(BuildContext context, String label) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: _selectedCategory == label,
+      onSelected: (isSelected) {
+        setState(() {
+          _selectedCategory = label;
+        });
+      },
+      selectedColor: const Color(0xFF0C1C30),
+      backgroundColor: Colors.grey[200],
+      labelStyle: TextStyle(color: _selectedCategory == label ? Colors.white : Colors.black),
+    );
+  }
+
+  // Fetch and display content as grid
+  Widget _contentGrid() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _fetchContent(), // ✅ Use your filtered stream here
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No content available.'));
+        }
+
+        // Convert Firestore data to UploadModel list
+        final uploads = snapshot.data!.docs.map((doc) {
+          return UploadModel.fromFirestore(doc.data() as Map<String, dynamic>);
+        }).toList();
+
+        return GridView.builder(
+          itemCount: uploads.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 3 / 4,
+          ),
+          itemBuilder: (context, index) {
+            final item = uploads[index];
+            return _contentCard(item);
+          },
+        );
+      },
+    );
+  }
+
+  // Create content card for each upload
+  Widget _contentCard(UploadModel item) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Display the thumbnail image
+          item.category == 'Image' || item.category == 'Literature'
+              ? Image.network(item.url, height: 120, width: double.infinity, fit: BoxFit.cover)
+              : const Icon(Icons.play_circle_outline, size: 120),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text("${item.author}\n${item.description}", style: TextStyle(color: Colors.grey[600])),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Bottom navigation bar
   Widget _bottomNavigationBar() {
     return BottomNavigationBar(
       backgroundColor: const Color(0xFF0C1C30),
@@ -111,11 +222,12 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
         _buildNavItem(Icons.menu_book_outlined, 'E-Pub', 1),
         _buildNavItem(Icons.add_box_outlined, 'Add', 2),
         _buildNavItem(Icons.photo_library_outlined, 'Arts', 3),
-        _buildNavItem(Icons.video_library_outlined, 'Videos', 4),
+        _buildNavItem(Icons.video_library_outlined, 'Video', 4),
       ],
     );
   }
 
+  // Navigation bar item builder
   BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
     return BottomNavigationBarItem(
       icon: AnimatedContainer(
@@ -145,29 +257,9 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
     );
   }
 
-  Widget _chipButton(BuildContext context, String label, {bool dark = false}) {
-    return ElevatedButton(
-      onPressed: () {},
-      style: ElevatedButton.styleFrom(
-        backgroundColor: dark ? const Color(0xFF0C1C30) : Colors.blue,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      ),
-      child: Text(label),
-    );
-  }
-
   Route _createCartRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => const PurchaseScreen(),
-      transitionsBuilder: _fadeSlideTransition,
-    );
-  }
-
-  Route _createUploadsRoute() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => const MyUploadsScreen(),
       transitionsBuilder: _fadeSlideTransition,
     );
   }
@@ -179,6 +271,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
     );
   }
 
+  // Transition for page routes
   Widget _fadeSlideTransition(
       BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
     const begin = Offset(0.0, -1.0);
@@ -197,6 +290,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
     );
   }
 
+  // Search bar widget
   Widget _searchBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -209,35 +303,6 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
           hintText: 'Search',
           border: InputBorder.none,
           icon: Icon(Icons.search, color: Colors.grey),
-        ),
-      ),
-    );
-  }
-
-  Widget _categoryOptions(BuildContext context) {
-    return Row(
-      children: [
-        _chipButton(context, 'Trending'),
-        const SizedBox(width: 8),
-        _chipButton(context, 'My Uploads', dark: true),
-        const SizedBox(width: 8),
-      ],
-    );
-  }
-
-  Widget _contentGrid() {
-    return GridView.builder(
-      itemCount: 6,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 3 / 4,
-      ),
-      itemBuilder: (context, index) => Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
