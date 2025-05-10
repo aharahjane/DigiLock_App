@@ -1,7 +1,28 @@
+// lib/screens/import_screen.dart
+import 'dart:io'; // ← add this
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ImportScreen extends StatefulWidget {
-  const ImportScreen({super.key});
+  final PlatformFile uploadedFile;
+  final String author;
+  final String price;
+  final String description;
+  final DateTime creationDate;
+  final String contentType;
+
+  const ImportScreen({
+    super.key,
+    required this.uploadedFile,
+    required this.author,
+    required this.price,
+    required this.description,
+    required this.creationDate,
+    required this.contentType,
+  });
 
   @override
   State<ImportScreen> createState() => _ImportScreenState();
@@ -9,6 +30,59 @@ class ImportScreen extends StatefulWidget {
 
 class _ImportScreenState extends State<ImportScreen> {
   bool isAgreed = false;
+  bool _isUploading = false;
+
+  Future<void> _handleUpload() async {
+    setState(() => _isUploading = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw 'User not logged in';
+
+      final uid = user.uid;
+      final fileName = widget.uploadedFile.name;
+      final storagePath = 'uploads/$uid/$fileName';
+      final ref = FirebaseStorage.instance.ref().child(storagePath);
+
+      UploadTask uploadTask;
+      // if bytes are available, use them; otherwise fall back to file path
+      if (widget.uploadedFile.bytes != null) {
+        uploadTask = ref.putData(widget.uploadedFile.bytes!);
+      } else if (widget.uploadedFile.path != null) {
+        final file = File(widget.uploadedFile.path!);
+        uploadTask = ref.putFile(file);
+      } else {
+        throw 'Cannot read file data';
+      }
+
+      // wait for upload and get URL
+      final snapshot = await uploadTask.whenComplete(() {});
+      final fileUrl = await snapshot.ref.getDownloadURL();
+
+      // write metadata to Firestore
+      await FirebaseFirestore.instance.collection('uploads').add({
+        'userId': uid,
+        'author': widget.author,
+        'price': widget.price,
+        'description': widget.description,
+        'creationDate': widget.creationDate.toIso8601String(),
+        'contentType': widget.contentType,
+        'fileUrl': fileUrl,
+        'uploadedAt': Timestamp.now(),
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Upload successful!')));
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,24 +119,9 @@ class _ImportScreenState extends State<ImportScreen> {
                   color: const Color(0xFFE9EBF2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          '• "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. '
-                          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. '
-                          'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. '
-                          'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."\n\n'
-                          '• "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. '
-                          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi...',
-                          style: TextStyle(color: Color(0xFF0C1C30)),
-                        ),
-                      ],
-                    ),
-                  ),
+                child: const Text(
+                  '• Please review and agree to the terms and conditions before uploading your content.',
+                  style: TextStyle(color: Color(0xFF0C1C30)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -70,36 +129,15 @@ class _ImportScreenState extends State<ImportScreen> {
                 children: [
                   Checkbox(
                     value: isAgreed,
-                    onChanged: (value) {
-                      setState(() {
-                        isAgreed = value ?? false;
-                      });
-                    },
+                    onChanged: (v) => setState(() => isAgreed = v ?? false),
                     activeColor: Colors.green,
                   ),
                   const Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          WidgetSpan(
-                            child: Icon(Icons.check_box, size: 0), // Invisible placeholder
-                          ),
-                          TextSpan(
-                            text: " I Agree to the ",
-                            style: TextStyle(
-                              color: Color(0xFF0C1C30),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextSpan(
-                            text: "Terms and Condition",
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                              color: Color(0xFF0C1C30),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                    child: Text(
+                      "I Agree to the Terms and Conditions",
+                      style: TextStyle(
+                        color: Color(0xFF0C1C30),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -107,9 +145,7 @@ class _ImportScreenState extends State<ImportScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: isAgreed ? () {
-                  // Your upload logic here
-                } : null,
+                onPressed: isAgreed && !_isUploading ? _handleUpload : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0C1C30),
                   foregroundColor: Colors.white,
@@ -118,10 +154,13 @@ class _ImportScreenState extends State<ImportScreen> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                child: const Text(
-                  "UPLOAD NOW!",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child:
+                    _isUploading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                          "UPLOAD NOW!",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
               ),
             ],
           ),

@@ -1,3 +1,4 @@
+// lib/screens/upload_work_screen.dart
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'import_screen.dart';
@@ -36,7 +37,6 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
-
     if (result != null) {
       setState(() {
         _uploadedFile = result.files.first;
@@ -45,9 +45,38 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
   }
 
   void _removeSelectedFile() {
-    setState(() {
-      _uploadedFile = null;
-    });
+    setState(() => _uploadedFile = null);
+  }
+
+  void _submit() {
+    if (_uploadedFile == null ||
+        _authorController.text.isEmpty ||
+        _priceController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _selectedDate == null ||
+        _selectedContentType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please complete all fields and select a file."),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => ImportScreen(
+              uploadedFile: _uploadedFile!,
+              author: _authorController.text.trim(),
+              price: _priceController.text.trim(),
+              description: _descriptionController.text.trim(),
+              creationDate: _selectedDate!,
+              contentType: _selectedContentType!,
+            ),
+      ),
+    );
   }
 
   @override
@@ -92,7 +121,11 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                       ),
                       const SizedBox(height: 20),
                       _buildTextField("Author", _authorController),
-                      _buildTextField("Price", _priceController, isNumber: true),
+                      _buildTextField(
+                        "Price",
+                        _priceController,
+                        isNumber: true,
+                      ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -100,10 +133,13 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text("Creation date",
-                                    style: TextStyle(
-                                        color: Color(0xFF0C1C30),
-                                        fontWeight: FontWeight.bold)),
+                                const Text(
+                                  "Creation date",
+                                  style: TextStyle(
+                                    color: Color(0xFF0C1C30),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 IconButton(
                                   onPressed: _pickDate,
                                   icon: const Icon(Icons.calendar_month),
@@ -111,7 +147,10 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                                 ),
                                 if (_selectedDate != null)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.grey.shade400,
                                       borderRadius: BorderRadius.circular(10),
@@ -128,17 +167,22 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text("Description",
-                                    style: TextStyle(
-                                        color: Color(0xFF0C1C30),
-                                        fontWeight: FontWeight.bold)),
+                                const Text(
+                                  "Description",
+                                  style: TextStyle(
+                                    color: Color(0xFF0C1C30),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Container(
                                   height: 100,
                                   decoration: BoxDecoration(
                                     color: Colors.grey.shade300,
                                     borderRadius: BorderRadius.circular(15),
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
                                   child: TextField(
                                     controller: _descriptionController,
                                     maxLines: null,
@@ -153,8 +197,6 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
-
-                      // Type of Digital Content Dropdown
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -177,23 +219,21 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                           value: _selectedContentType,
                           hint: const Text("Select"),
                           underline: const SizedBox(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedContentType = newValue;
-                            });
+                          onChanged: (newValue) {
+                            setState(() => _selectedContentType = newValue);
                           },
-                          items: _contentTypes.map((String type) {
-                            return DropdownMenuItem<String>(
-                              value: type,
-                              child: Text(type),
-                            );
-                          }).toList(),
+                          items:
+                              _contentTypes
+                                  .map(
+                                    (type) => DropdownMenuItem(
+                                      value: type,
+                                      child: Text(type),
+                                    ),
+                                  )
+                                  .toList(),
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Import Digital Content Button
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -212,14 +252,16 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                         ),
                         onPressed: _pickFile,
                         icon: const Icon(Icons.upload),
-                        label: const Text("Select"),
+                        label: const Text("Select File"),
                       ),
-
                       if (_uploadedFile != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 10),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade300,
                               borderRadius: BorderRadius.circular(12),
@@ -258,13 +300,8 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ImportScreen()),
-                  );
-                },
-                child: const Text("NEXT"),
+                onPressed: _submit,
+                child: const Text("SUBMIT"),
               ),
             ),
           ],
@@ -273,15 +310,21 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isNumber = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(
-              color: Color(0xFF0C1C30),
-              fontWeight: FontWeight.bold,
-            )),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF0C1C30),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 4),
         TextField(
           controller: controller,

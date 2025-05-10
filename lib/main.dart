@@ -4,20 +4,20 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
-import 'firebase_options.dart';
+import 'screens/ui_home_screen.dart';
 import 'screens/purchase_screen.dart';
 import 'screens/my_uploads_screen.dart';
-import 'screens/ui_home_screen.dart';
-import 'screens/upload_choice_screen.dart';      // ✅ NEW
-import 'screens/upload_steps_screen.dart';       // ✅ NEW
-import 'screens/my_works_screen.dart';           // ✅ NEW
+import 'screens/upload_choice_screen.dart';
+import 'screens/upload_steps_screen.dart';
+import 'screens/my_works_screen.dart';
 import 'screens/upload_work_screen.dart';
+import 'screens/import_screen.dart';
+import 'firebase_options.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -40,11 +40,11 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const UiHomeScreen(),
         '/purchases': (context) => const PurchaseScreen(),
         '/uploads': (context) => const MyUploadsScreen(),
-        '/upload_my_work': (context) => const UploadChoiceScreen(), // ✅ new screen from drawer
-        '/uploadSteps': (context) => const UploadStepsScreen(),     // ✅ step-by-step guide
-        '/myWorks': (context) => const MyWorksScreen(),            // ✅ "My works" page
+        '/upload_my_work': (context) => const UploadChoiceScreen(),
+        '/uploadSteps': (context) => const UploadStepsScreen(),
+        '/myWorks': (context) => const MyWorksScreen(),
         '/uploadWork': (context) => const UploadWorkScreen(),
-
+      
       },
     );
   }
@@ -76,9 +76,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0C1C30),
-      body: Center(
-        child: Image.asset("assets/logo_outlined.png", width: 150),
-      ),
+      body: Center(child: Image.asset("assets/logo_outlined.png", width: 150)),
     );
   }
 }
