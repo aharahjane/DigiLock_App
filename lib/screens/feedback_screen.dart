@@ -104,9 +104,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0C1C30),
                 ),
-                child: _isSubmitting
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Submit'),
+                child:
+                    _isSubmitting
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Submit'),
               ),
             ),
           ],

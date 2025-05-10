@@ -10,7 +10,11 @@ class CustomDrawer extends StatelessWidget {
   Future<String> _getFirstName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final docSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final docSnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
       if (docSnapshot.exists) {
         return docSnapshot.data()?['firstName'] ?? 'User';
       }
@@ -35,9 +39,7 @@ class CustomDrawer extends StatelessWidget {
             padding: EdgeInsets.zero,
             children: [
               const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Color(0xFF0C1C30),
-                ),
+                decoration: BoxDecoration(color: Color(0xFF0C1C30)),
                 child: Center(
                   child: Text(
                     'DigiLock',
@@ -50,7 +52,10 @@ class CustomDrawer extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Text(
                   'Hi $firstName!',
                   style: const TextStyle(
@@ -62,65 +67,93 @@ class CustomDrawer extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.person, color: Colors.white),
-                title: const Text('Personal Info', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Personal Info',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pushReplacementNamed(context, '/personal_info');
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.notifications, color: Colors.white),
-                title: const Text('Notifications', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Notifications',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pushReplacementNamed(context, '/notifications');
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.security, color: Colors.white),
-                title: const Text('Security', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Security',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pushReplacementNamed(context, '/security');
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.upload_file, color: Colors.white),
-                title: const Text('Upload My Work', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Upload My Work',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   // ✅ FIXED: Use push instead of pushReplacementNamed
                   Navigator.pop(context); // close drawer
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const UploadChoiceScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const UploadChoiceScreen(),
+                    ),
                   );
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.info, color: Colors.white),
-                title: const Text('About DigiLock', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'About DigiLock',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pushReplacementNamed(context, '/about_digilock');
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.bar_chart, color: Colors.white),
-                title: const Text('Reports', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Reports',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pushReplacementNamed(context, '/reports');
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.feedback, color: Colors.white),
-                title: const Text('Feedback', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Feedback',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const FeedbackScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const FeedbackScreen(),
+                    ),
                   );
                 },
               ),
               const Divider(color: Colors.white54),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white),
-                title: const Text('Logout', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () async {
                   await FirebaseAuth.instance.signOut();
                   Navigator.pushReplacementNamed(context, '/login');

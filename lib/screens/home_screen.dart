@@ -11,10 +11,12 @@ class HomeScreen extends StatelessWidget {
     if (email == null) return false;
 
     try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(email).get();
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(email).get();
       if (userDoc.exists) {
         final userData = userDoc.data();
-        return userData?['role'] == 'admin'; // Assuming 'role' field holds the value 'admin' or 'user'
+        return userData?['role'] ==
+            'admin'; // Assuming 'role' field holds the value 'admin' or 'user'
       }
     } catch (e) {
       print("Error checking admin: $e");
@@ -58,7 +60,9 @@ class HomeScreen extends StatelessWidget {
                       // Navigate to the admin panel screen
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const AdminPanelScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const AdminPanelScreen(),
+                        ),
                       );
                     },
                     child: const Text('Go to Admin Panel'),
@@ -70,7 +74,9 @@ class HomeScreen extends StatelessWidget {
                       await FirebaseAuth.instance.signOut();
                       // After signing out, navigate to the login screen
                       Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
                       );
                     },
                     child: const Text('Logout'),
@@ -100,7 +106,9 @@ class HomeScreen extends StatelessWidget {
                       await FirebaseAuth.instance.signOut();
                       // After signing out, navigate to the login screen
                       Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
                       );
                     },
                     child: const Text('Logout'),

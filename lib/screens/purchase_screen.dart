@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'drawer_menu.dart';
-import 'package:firebase_auth/firebase_auth.dart';  // Add this import
-
-
+import 'package:firebase_auth/firebase_auth.dart'; // Add this import
 
 class PurchaseScreen extends StatefulWidget {
   const PurchaseScreen({super.key});
@@ -13,7 +11,8 @@ class PurchaseScreen extends StatefulWidget {
 }
 
 class _PurchaseScreenState extends State<PurchaseScreen> {
-  String userFirstName = "User"; // Default value if the user's name is not fetched
+  String userFirstName =
+      "User"; // Default value if the user's name is not fetched
 
   @override
   void initState() {
@@ -25,7 +24,11 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
     // Fetching user name from Firestore (assuming user's first name is stored)
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
       setState(() {
         userFirstName = userDoc['firstName'] ?? 'User';
       });
@@ -54,10 +57,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.all(8),
-              child: const Icon(
-                Icons.shopping_cart,
-                color: Colors.black,
-              ),
+              child: const Icon(Icons.shopping_cart, color: Colors.black),
             ),
           ),
         ],
@@ -97,13 +97,14 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
           crossAxisCount: 1,
           mainAxisSpacing: 10,
         ),
-        itemBuilder: (context, index) => Container(
-          width: 150,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+        itemBuilder:
+            (context, index) => Container(
+              width: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
       ),
     );
   }
@@ -117,7 +118,10 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.shop), label: 'Store'),
         BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
-        BottomNavigationBarItem(icon: Icon(Icons.video_collection), label: 'Videos'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.video_collection),
+          label: 'Videos',
+        ),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
       currentIndex: 1, // Purchases page active

@@ -75,10 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const Text(
                       'Welcome to DigiLock',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF0C1C30),
-                      ),
+                      style: TextStyle(fontSize: 16, color: Color(0xFF0C1C30)),
                     ),
                   ],
                 ),
@@ -97,10 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text(
                     'Welcome back!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 24, color: Colors.white),
                   ),
                   const SizedBox(height: 24),
                   _buildTextField('Email', emailController, false),
@@ -118,9 +112,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Log In', style: TextStyle(fontSize: 16)),
+                      child:
+                          isLoading
+                              ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                              : const Text(
+                                'Log In',
+                                style: TextStyle(fontSize: 16),
+                              ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -128,7 +128,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const SignupScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const SignupScreen(),
+                        ),
                       );
                     },
                     child: const Text(
@@ -155,7 +157,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, bool isPassword) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller,
+    bool isPassword,
+  ) {
     return TextField(
       controller: controller,
       obscureText: isPassword ? obscurePassword : false,
@@ -167,19 +173,20 @@ class _LoginScreenState extends State<LoginScreen> {
           borderRadius: BorderRadius.circular(24),
           borderSide: BorderSide.none,
         ),
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(
-                  obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: const Color(0xFF0C1C30),
-                ),
-                onPressed: () {
-                  setState(() {
-                    obscurePassword = !obscurePassword;
-                  });
-                },
-              )
-            : null,
+        suffixIcon:
+            isPassword
+                ? IconButton(
+                  icon: Icon(
+                    obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: const Color(0xFF0C1C30),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      obscurePassword = !obscurePassword;
+                    });
+                  },
+                )
+                : null,
       ),
     );
   }

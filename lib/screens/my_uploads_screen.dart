@@ -34,10 +34,7 @@ class MyUploadsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.black,
-                    ),
+                    child: const Icon(Icons.person, color: Colors.black),
                   ),
                 ),
               ],
@@ -63,7 +60,10 @@ class MyUploadsScreen extends StatelessWidget {
 
           // My Uploads Title
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: const [
                 Text(
@@ -89,12 +89,13 @@ class MyUploadsScreen extends StatelessWidget {
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
-                itemBuilder: (context, index) => Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                itemBuilder:
+                    (context, index) => Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
               ),
             ),
           ),
@@ -106,22 +107,10 @@ class MyUploadsScreen extends StatelessWidget {
         unselectedItemColor: Colors.white54,
         showUnselectedLabels: true,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book),
-            label: 'E-Pub',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box),
-            label: 'Add',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.image),
-            label: 'Arts',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'E-Pub'),
+          BottomNavigationBarItem(icon: Icon(Icons.add_box), label: 'Add'),
+          BottomNavigationBarItem(icon: Icon(Icons.image), label: 'Arts'),
           BottomNavigationBarItem(
             icon: Icon(Icons.video_collection),
             label: 'Videos',

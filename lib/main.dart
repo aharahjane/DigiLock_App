@@ -14,7 +14,6 @@ import 'screens/upload_work_screen.dart';
 import 'screens/import_screen.dart';
 import 'firebase_options.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -44,7 +43,6 @@ class MyApp extends StatelessWidget {
         '/uploadSteps': (context) => const UploadStepsScreen(),
         '/myWorks': (context) => const MyWorksScreen(),
         '/uploadWork': (context) => const UploadWorkScreen(),
-      
       },
     );
   }

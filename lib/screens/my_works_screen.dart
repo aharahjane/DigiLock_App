@@ -48,11 +48,12 @@ class _MyWorksScreenState extends State<MyWorksScreen> {
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('uploads')
-            .where('userId', isEqualTo: user!.uid)
-            .orderBy('uploadedAt', descending: true)
-            .snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('uploads')
+                .where('userId', isEqualTo: user!.uid)
+                .orderBy('uploadedAt', descending: true)
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
