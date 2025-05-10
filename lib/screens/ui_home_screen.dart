@@ -1,12 +1,12 @@
 // lib/screens/ui_home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'drawer_menu.dart';
 import 'purchase_screen.dart';
 import 'my_uploads_screen.dart';
 import 'user_profile_screen.dart';
+import 'upload_choice_screen.dart';
 
 class UiHomeScreen extends StatefulWidget {
   const UiHomeScreen({super.key});
@@ -17,25 +17,29 @@ class UiHomeScreen extends StatefulWidget {
 
 class _UiHomeScreenState extends State<UiHomeScreen> {
   int _selectedIndex = 0;
-  final user = FirebaseAuth.instance.currentUser;
-  TextEditingController _fileController = TextEditingController();
+
+  // Determine filter based on bottom nav selection
+  String? get _filterType {
+    switch (_selectedIndex) {
+      case 1:
+        return 'E-Books'; // E-Pub
+      case 3:
+        return 'Photos'; // Arts
+      case 4:
+        return 'Videos'; // Videos
+      default:
+        return null; // Home and Add show all
+    }
+  }
 
   void _onNavItemTapped(int index) {
-    switch (index) {
-      case 0:
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/ePub');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/add');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/arts');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/videos');
-        break;
+    if (index == 2) {
+      // Navigate to upload choice
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const UploadChoiceScreen()),
+      );
+      return;
     }
     setState(() => _selectedIndex = index);
   }
@@ -51,16 +55,29 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (!snapshot.hasData) {
+          return const Center(child: Text('Loading...'));
+        }
+        final allDocs = snapshot.data!.docs;
+        final filter = _filterType;
+        // Client-side filter to avoid Firestore index issues
+        final docs =
+            filter == null
+                ? allDocs
+                : allDocs.where((doc) {
+                  final data = doc.data()! as Map<String, dynamic>;
+                  return data['contentType'] == filter;
+                }).toList();
+
+        if (docs.isEmpty) {
           return const Center(
             child: Text(
-              'No content uploaded yet.',
+              'No content for this category.',
               style: TextStyle(color: Colors.black54),
             ),
           );
         }
 
-        final docs = snapshot.data!.docs;
         return GridView.builder(
           itemCount: docs.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -75,7 +92,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
             final title = data['author'] as String;
             final type = data['contentType'] as String;
 
-            // For E-Books show a book icon; for images/videos, show cover
+            // For E-Books, show a book icon; otherwise show thumbnail
             Widget cover;
             if (type == 'E-Books') {
               cover = Container(
@@ -83,8 +100,8 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Center(
-                  child: Icon(Icons.book, size: 64, color: Colors.grey[700]),
+                child: const Center(
+                  child: Icon(Icons.book, size: 64, color: Colors.grey),
                 ),
               );
             } else {
@@ -102,7 +119,6 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
 
             return GestureDetector(
               onTap: () async {
-                // launch the file URL (for EPUB it will download/open)
                 final uri = Uri.parse(fileUrl);
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri);
@@ -276,6 +292,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
     pageBuilder: (_, anim, sec) => const PurchaseScreen(),
     transitionsBuilder: _fadeSlideTransition,
   );
+
   Route _createProfileRoute() => PageRouteBuilder(
     pageBuilder: (_, anim, sec) => const UserProfileScreen(),
     transitionsBuilder: _fadeSlideTransition,
