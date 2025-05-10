@@ -22,7 +22,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
   String? get _filterType {
     switch (_selectedIndex) {
       case 1:
-        return 'E-Books'; // E-Pub
+        return 'Literature'; // E-Pub
       case 3:
         return 'Photos'; // Arts
       case 4:
@@ -94,7 +94,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
 
             // For E-Books, show a book icon; otherwise show thumbnail
             Widget cover;
-            if (type == 'E-Books') {
+            if (type == 'Literature') {
               cover = Container(
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
@@ -153,7 +153,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
       onTap: _onNavItemTapped,
       items: [
         _buildNavItem(Icons.home_outlined, 'Home', 0),
-        _buildNavItem(Icons.menu_book_outlined, 'E-Pub', 1),
+        _buildNavItem(Icons.menu_book_outlined, 'Literature', 1),
         _buildNavItem(Icons.add_box_outlined, 'Add', 2),
         _buildNavItem(Icons.photo_library_outlined, 'Arts', 3),
         _buildNavItem(Icons.video_library_outlined, 'Videos', 4),

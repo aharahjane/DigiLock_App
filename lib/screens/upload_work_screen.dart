@@ -19,7 +19,7 @@ class _UploadWorkScreenState extends State<UploadWorkScreen> {
   String? _selectedContentType;
   PlatformFile? _uploadedFile;
 
-  final List<String> _contentTypes = ['Photos', 'Videos', 'E-books'];
+  final List<String> _contentTypes = ['Photos', 'Videos', 'Literature'];
 
   Future<void> _pickDate() async {
     DateTime? picked = await showDatePicker(
