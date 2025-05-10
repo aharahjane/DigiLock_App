@@ -1,6 +1,6 @@
 // lib/screens/content_preview_screen.dart
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'content_detail_screen.dart';
 
 class ContentPreviewScreen extends StatelessWidget {
   final String fileUrl;
@@ -66,14 +66,14 @@ class ContentPreviewScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Details
             Text(
-              'Author: \$author',
+              'Author: $author',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 4),
-            Text('Price: \$price', style: const TextStyle(fontSize: 16)),
+            Text('Price: $price', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 4),
             Text(
-              'Created: \$creationDate',
+              'Created: $creationDate',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -81,11 +81,17 @@ class ContentPreviewScreen extends StatelessWidget {
             const Spacer(),
             // Check it out button
             ElevatedButton(
-              onPressed: () async {
-                final uri = Uri.parse(fileUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                }
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => ContentDetailScreen(
+                          fileUrl: fileUrl,
+                          contentType: contentType,
+                        ),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0C1C30),
