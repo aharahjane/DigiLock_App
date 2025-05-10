@@ -2,276 +2,176 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class UserProfileScreen extends StatelessWidget {
-  const UserProfileScreen({super.key});
+class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({Key? key}) : super(key: key);
 
-  // Fetch user data
-  Future<DocumentSnapshot> _getUserData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      return await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    }
-    throw Exception('User not authenticated');
+  @override
+  _UserProfileScreenState createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String? photoUrl;
+  String? fullName;
+  String? bio;
+  String? joinedDate;
+  String? userId;
+
+  bool isEditing = false;
+  TextEditingController bioController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserProfile();
   }
 
-  // Fetch purchased content for a user
-  Future<Map<String, List<Map<String, dynamic>>>> _getPurchasedContent() async {
-    final user = FirebaseAuth.instance.currentUser;
+  Future<void> fetchUserProfile() async {
+    final user = _auth.currentUser;
     if (user != null) {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('purchasedContent')
-          .get();
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      final data = doc.data();
 
-      final Map<String, List<Map<String, dynamic>>> categorizedContent = {
-        'epubs': [],
-        'books': [],
-        'arts': [],
-        'videos': [],
-      };
-
-      for (var doc in snapshot.docs) {
-        final content = doc.data();
-        final contentType = content['type'] as String;
-
-        if (contentType == 'epub') {
-          categorizedContent['epubs']!.add(content);
-        } else if (contentType == 'book') {
-          categorizedContent['books']!.add(content);
-        } else if (contentType == 'art') {
-          categorizedContent['arts']!.add(content);
-        } else if (contentType == 'video') {
-          categorizedContent['videos']!.add(content);
-        }
-      }
-
-      return categorizedContent;
+      setState(() {
+        photoUrl = data?['photoUrl'] ?? '';
+        fullName = '${data?['firstName'] ?? ''} ${data?['lastName'] ?? ''}';
+        bio = data?['bio'] ?? '';
+        joinedDate =
+            (data?['createdAt'] as Timestamp?)?.toDate().toString().split(
+              ' ',
+            )[0];
+        userId = user.uid;
+        bioController.text = bio!;
+      });
     }
-    throw Exception('User not authenticated');
   }
 
-  // Fetch uploaded content for a user
-  Future<Map<String, List<Map<String, dynamic>>>> _getMyUploads() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('myUploads')
-          .get();
+  Future<void> updateBio() async {
+    await _firestore.collection('users').doc(userId).update({
+      'bio': bioController.text,
+    });
+    setState(() {
+      bio = bioController.text;
+      isEditing = false;
+    });
 
-      final Map<String, List<Map<String, dynamic>>> categorizedUploads = {
-        'epubs': [],
-        'books': [],
-        'arts': [],
-        'videos': [],
-      };
-
-      for (var doc in snapshot.docs) {
-        final upload = doc.data();
-        final uploadType = upload['type'] as String;
-
-        if (uploadType == 'epub') {
-          categorizedUploads['epubs']!.add(upload);
-        } else if (uploadType == 'book') {
-          categorizedUploads['books']!.add(upload);
-        } else if (uploadType == 'art') {
-          categorizedUploads['arts']!.add(upload);
-        } else if (uploadType == 'video') {
-          categorizedUploads['videos']!.add(upload);
-        }
-      }
-
-      return categorizedUploads;
-    }
-    throw Exception('User not authenticated');
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Bio updated successfully')));
   }
 
   @override
   Widget build(BuildContext context) {
+    if (userId == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-        backgroundColor: const Color(0xFF0C1C30),
-        foregroundColor: Colors.white,
-      ),
-      backgroundColor: const Color(0xFFF8F8F8),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: _getUserData(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('No user data found'));
-          }
-
-          final userData = snapshot.data!.data() as Map<String, dynamic>;
-          final firstName = userData['firstName'] ?? 'John';
-          final lastName = userData['lastName'] ?? 'Doe';
-          final photoUrl = userData['photoUrl'] ?? 'assets/images/profile_placeholder.png';
-          final followers = userData['followers']?.toString() ?? '0';
-          final following = userData['following']?.toString() ?? '0';
-
-          return FutureBuilder<Map<String, dynamic>>(
-            future: _fetchContentData(),
-            builder: (context, contentSnapshot) {
-              if (contentSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (contentSnapshot.hasError) {
-                return Center(child: Text('Error: ${contentSnapshot.error}'));
-              }
-
-              final purchasedContent = contentSnapshot.data!['purchasedContent']
-                  as Map<String, List<Map<String, dynamic>>>;
-              final myUploads = contentSnapshot.data!['myUploads']
-                  as Map<String, List<Map<String, dynamic>>>;
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _profileHeader(firstName, lastName, photoUrl, followers, following),
-                    const SizedBox(height: 24),
-                    _sectionTitle('Purchased Content'),
-                    _contentCategoryList(purchasedContent),
-                    const SizedBox(height: 24),
-                    _sectionTitle('My Uploads'),
-                    _contentCategoryList(myUploads),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Future<Map<String, dynamic>> _fetchContentData() async {
-    final purchased = await _getPurchasedContent();
-    final uploads = await _getMyUploads();
-    return {
-      'purchasedContent': purchased,
-      'myUploads': uploads,
-    };
-  }
-
-  Widget _profileHeader(String firstName, String lastName, String photoUrl, String followers, String following) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 48,
-          backgroundImage: NetworkImage(photoUrl),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          '$firstName $lastName',
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Content Creator | Reader | Artist',
-          style: TextStyle(color: Colors.grey),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+      appBar: AppBar(title: const Text("My Profile")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            _statColumn('Followers', followers),
-            const SizedBox(width: 32),
-            _statColumn('Following', following),
-          ],
-        ),
-      ],
-    );
-  }
+            // Profile Picture
+            CircleAvatar(
+              radius: 50,
+              backgroundImage:
+                  photoUrl != null && photoUrl!.isNotEmpty
+                      ? NetworkImage(photoUrl!)
+                      : const AssetImage('assets/default_avatar.jpg')
+                          as ImageProvider,
+            ),
+            const SizedBox(height: 12),
 
-  static const TextStyle _statStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
-  static const TextStyle _labelStyle = TextStyle(color: Colors.grey);
+            // Full Name
+            Text(
+              fullName ?? '',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              "Joined: $joinedDate",
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
 
-  static Widget _statColumn(String label, String count) {
-    return Column(
-      children: [
-        Text(count, style: _statStyle),
-        Text(label, style: _labelStyle),
-      ],
-    );
-  }
+            // Bio with Edit/Save
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Bio:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (isEditing) {
+                      updateBio();
+                    } else {
+                      setState(() => isEditing = true);
+                    }
+                  },
+                  child: Text(isEditing ? 'Save Bio' : 'Edit Bio'),
+                ),
+              ],
+            ),
+            isEditing
+                ? TextField(
+                  controller: bioController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                )
+                : Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    bio?.isEmpty ?? true ? 'No bio yet.' : bio!,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+            const SizedBox(height: 30),
 
-  Widget _sectionTitle(String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
+            const Divider(),
+            const Text(
+              "Your Uploads",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
 
-  Widget _contentCategoryList(Map<String, List<Map<String, dynamic>>> content) {
-    return Column(
-      children: [
-        _categoryButton('All', content.values.expand((list) => list).toList()),
-        _categoryButton('Ebooks', content['epubs'] ?? []),
-        _categoryButton('Books', content['books'] ?? []),
-        _categoryButton('Arts', content['arts'] ?? []),
-        _categoryButton('Videos', content['videos'] ?? []),
-      ],
-    );
-  }
+            // Uploaded Content
+            StreamBuilder<QuerySnapshot>(
+              stream:
+                  _firestore
+                      .collection('uploads')
+                      .where('userId', isEqualTo: userId)
+                      .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const CircularProgressIndicator();
+                final uploads = snapshot.data!.docs;
 
-  Widget _categoryButton(String title, List<Map<String, dynamic>> categoryContent) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          categoryContent.isEmpty
-              ? const Text('No content available')
-              : Column(
-                  children: categoryContent.map((item) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.file_copy, color: Color(0xFF0C1C30)),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(item['title'] ?? 'Untitled')),
-                          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                        ],
+                if (uploads.isEmpty) return const Text("No uploads yet.");
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: uploads.length,
+                  itemBuilder: (context, index) {
+                    final data = uploads[index].data() as Map<String, dynamic>;
+                    return Card(
+                      child: ListTile(
+                        title: Text(data['title'] ?? ''),
+                        subtitle: Text(data['description'] ?? ''),
+                        trailing: Text(data['category'] ?? ''),
                       ),
                     );
-                  }).toList(),
-                ),
-        ],
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

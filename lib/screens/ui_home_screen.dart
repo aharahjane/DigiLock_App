@@ -7,6 +7,7 @@ import 'purchase_screen.dart';
 import 'my_uploads_screen.dart';
 import 'user_profile_screen.dart';
 import 'upload_choice_screen.dart';
+import 'content_preview_screen.dart';
 
 class UiHomeScreen extends StatefulWidget {
   const UiHomeScreen({super.key});
@@ -22,7 +23,7 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
   String? get _filterType {
     switch (_selectedIndex) {
       case 1:
-        return 'Literature'; // E-Pub
+        return 'Literature'; // Literature
       case 3:
         return 'Photos'; // Arts
       case 4:
@@ -60,7 +61,6 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
         }
         final allDocs = snapshot.data!.docs;
         final filter = _filterType;
-        // Client-side filter to avoid Firestore index issues
         final docs =
             filter == null
                 ? allDocs
@@ -89,10 +89,12 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
           itemBuilder: (context, index) {
             final data = docs[index].data()! as Map<String, dynamic>;
             final fileUrl = data['fileUrl'] as String;
-            final title = data['author'] as String;
+            final author = data['author'] as String;
+            final price = data['price'] as String;
+            final description = data['description'] as String;
+            final creationDate = data['creationDate'] as String;
             final type = data['contentType'] as String;
 
-            // For E-Books, show a book icon; otherwise show thumbnail
             Widget cover;
             if (type == 'Literature') {
               cover = Container(
@@ -118,18 +120,28 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
             }
 
             return GestureDetector(
-              onTap: () async {
-                final uri = Uri.parse(fileUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                }
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => ContentPreviewScreen(
+                          fileUrl: fileUrl,
+                          author: author,
+                          price: price,
+                          description: description,
+                          creationDate: creationDate,
+                          contentType: type,
+                        ),
+                  ),
+                );
               },
               child: Column(
                 children: [
                   Expanded(child: cover),
                   const SizedBox(height: 4),
                   Text(
-                    title,
+                    author,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -294,7 +306,8 @@ class _UiHomeScreenState extends State<UiHomeScreen> {
   );
 
   Route _createProfileRoute() => PageRouteBuilder(
-    pageBuilder: (_, anim, sec) => const UserProfileScreen(),
+    pageBuilder:
+        (context, animation, secondaryAnimation) => const UserProfileScreen(),
     transitionsBuilder: _fadeSlideTransition,
   );
 
